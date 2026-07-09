@@ -42,6 +42,11 @@ COLUMN_ALIASES: dict[str, tuple[str, ...]] = {
 }
 
 
+DEFAULT_DON_VI_LIEN_HE = (
+    "Phòng Khách hàng cá nhân – Ngân hàng TMCP Đầu tư và Phát triển Việt Nam – Chi nhánh Đông Đồng Nai"
+)
+
+
 @dataclass
 class LoanNoticeData:
     so_van_ban: str
@@ -55,7 +60,7 @@ class LoanNoticeData:
     so_ngay_qua_han: int
     so_dien_thoai: str = "02513 526 325"
     nguoi_ky: str = "Nguyễn Quốc Tuấn"
-    chuc_danh_ky: str = "P.KHCN"
+    don_vi_lien_he: str = DEFAULT_DON_VI_LIEN_HE
     ngay_them_han_thanh_toan: int = 15
 
 
@@ -245,6 +250,9 @@ def row_to_notice(
     so_van_ban: str,
     ngay_bao_cao: date | None,
     them_ngay: int,
+    don_vi_lien_he: str = DEFAULT_DON_VI_LIEN_HE,
+    so_dien_thoai: str = "02513 526 325",
+    nguoi_ky: str = "Nguyễn Quốc Tuấn",
 ) -> LoanNoticeData:
     ten = title_case_vn(str(get_cell(row, mapping, "ten_khach_hang", "") or ""))
     so_tk = str(get_cell(row, mapping, "so_khoan_vay", "") or "").strip()
@@ -292,6 +300,9 @@ def row_to_notice(
         qua_han_goc=goc_qh,
         qua_han_lai_va_phat=qua_han_lai,
         so_ngay_qua_han=so_ngay,
+        so_dien_thoai=so_dien_thoai,
+        nguoi_ky=nguoi_ky,
+        don_vi_lien_he=don_vi_lien_he,
         ngay_them_han_thanh_toan=them_ngay,
     )
 
@@ -536,8 +547,7 @@ def build_document(data: LoanNoticeData, output_path: Path) -> Path:
     set_paragraph_format(contact, align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line=1.0, space_before=8, line=1.15)
     add_text(
         contact,
-        "Mọi thông tin xin vui lòng liên hệ đến Phòng Khách hàng cá nhân – Ngân hàng TMCP Đầu tư và Phát triển "
-        f"Việt Nam – Chi nhánh Đông Đồng Nai, số điện thoại: {data.so_dien_thoai}.",
+        f"Mọi thông tin xin vui lòng liên hệ đến {data.don_vi_lien_he}, số điện thoại: {data.so_dien_thoai}.",
         size=12,
     )
 
@@ -567,9 +577,6 @@ def build_document(data: LoanNoticeData, output_path: Path) -> Path:
     name_p = right_f.add_paragraph()
     set_paragraph_format(name_p, align=WD_ALIGN_PARAGRAPH.CENTER, space_before=6)
     add_text(name_p, data.nguoi_ky, bold=True, size=12)
-    role_p = right_f.add_paragraph()
-    set_paragraph_format(role_p, align=WD_ALIGN_PARAGRAPH.CENTER)
-    add_text(role_p, data.chuc_danh_ky, size=11)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(output_path)
@@ -616,6 +623,13 @@ Ví dụ:
     )
     parser.add_argument("--ngay-bao-cao", default=None, help="Ngày báo cáo dd/mm/yyyy (tuỳ chọn)")
     parser.add_argument("--them-ngay", type=int, default=15, help="Cộng thêm N ngày cho hạn thanh toán (mặc định 15)")
+    parser.add_argument(
+        "--don-vi-lien-he",
+        default=DEFAULT_DON_VI_LIEN_HE,
+        help="Đơn vị liên hệ in trong thông báo (điền linh hoạt)",
+    )
+    parser.add_argument("--so-dien-thoai", default="02513 526 325", help="Số điện thoại liên hệ")
+    parser.add_argument("--nguoi-ky", default="Nguyễn Quốc Tuấn", help="Tên người ký (không in chức danh P.KHCN)")
     parser.add_argument("--output", "-o", default=None, help="Đường dẫn file .docx đầu ra (chỉ dùng khi tạo 1 dòng)")
     parser.add_argument("--output-dir", default="output", help="Thư mục lưu file khi dùng --all-overdue (mặc định: output)")
     parser.add_argument("--list-overdue", action="store_true", help="Liệt kê các dòng có nợ quá hạn rồi thoát")
@@ -671,6 +685,9 @@ def generate_one(
     them_ngay: int,
     out: Path,
     allow_not_overdue: bool,
+    don_vi_lien_he: str = DEFAULT_DON_VI_LIEN_HE,
+    so_dien_thoai: str = "02513 526 325",
+    nguoi_ky: str = "Nguyễn Quốc Tuấn",
 ) -> Path | None:
     data = row_to_notice(
         row,
@@ -678,6 +695,9 @@ def generate_one(
         so_van_ban=so_van_ban,
         ngay_bao_cao=ngay_bc,
         them_ngay=them_ngay,
+        don_vi_lien_he=don_vi_lien_he,
+        so_dien_thoai=so_dien_thoai,
+        nguoi_ky=nguoi_ky,
     )
     tong_qh = data.qua_han_goc + data.qua_han_lai_va_phat
     if data.so_ngay_qua_han <= 0 and tong_qh <= 0 and not allow_not_overdue:
@@ -732,7 +752,14 @@ def main(argv: list[str] | None = None) -> int:
             so_vb = make_so_van_ban(args.so_van_ban, args.so_van_ban_start, batch_i)
             # preview tên/stk để đặt tên file
             preview = row_to_notice(
-                row, mapping, so_van_ban=so_vb, ngay_bao_cao=ngay_bc, them_ngay=args.them_ngay
+                row,
+                mapping,
+                so_van_ban=so_vb,
+                ngay_bao_cao=ngay_bc,
+                them_ngay=args.them_ngay,
+                don_vi_lien_he=args.don_vi_lien_he,
+                so_dien_thoai=args.so_dien_thoai,
+                nguoi_ky=args.nguoi_ky,
             )
             out = out_dir / f"Thong_bao_no_qua_han_{slugify(preview.ten_khach_hang)}_{preview.so_khoan_vay}.docx"
             result = generate_one(
@@ -744,6 +771,9 @@ def main(argv: list[str] | None = None) -> int:
                 them_ngay=args.them_ngay,
                 out=out,
                 allow_not_overdue=args.allow_not_overdue,
+                don_vi_lien_he=args.don_vi_lien_he,
+                so_dien_thoai=args.so_dien_thoai,
+                nguoi_ky=args.nguoi_ky,
             )
             if result is None:
                 skipped += 1
@@ -772,6 +802,9 @@ def main(argv: list[str] | None = None) -> int:
             so_van_ban=args.so_van_ban,
             ngay_bao_cao=ngay_bc,
             them_ngay=args.them_ngay,
+            don_vi_lien_he=args.don_vi_lien_he,
+            so_dien_thoai=args.so_dien_thoai,
+            nguoi_ky=args.nguoi_ky,
         )
         out = Path(args.output_dir) / f"Thong_bao_no_qua_han_{slugify(preview.ten_khach_hang)}_{preview.so_khoan_vay}.docx"
 
@@ -784,6 +817,9 @@ def main(argv: list[str] | None = None) -> int:
         them_ngay=args.them_ngay,
         out=out,
         allow_not_overdue=args.allow_not_overdue,
+        don_vi_lien_he=args.don_vi_lien_he,
+        so_dien_thoai=args.so_dien_thoai,
+        nguoi_ky=args.nguoi_ky,
     )
     return 0 if result is not None else 2
 

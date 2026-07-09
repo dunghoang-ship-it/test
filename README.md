@@ -65,6 +65,9 @@ python3 scripts/generate_thong_bao_no_qua_han.py \
 | `--them-ngay 15` | Cộng thêm N ngày cho hạn thanh toán |
 | `--output duong/dan.docx` | Đường dẫn file Word đầu ra (1 dòng) |
 | `--allow-not-overdue` | Vẫn tạo dù dòng chưa quá hạn |
+| `--don-vi-lien-he "..."` | Đơn vị liên hệ (điền linh hoạt) |
+| `--so-dien-thoai "..."` | Số điện thoại liên hệ |
+| `--nguoi-ky "..."` | Tên người ký (không in P.KHCN) |
 
 File Word mặc định lưu vào `output/Thong_bao_no_qua_han_<Ten>_<SoTK>.docx`.
 
