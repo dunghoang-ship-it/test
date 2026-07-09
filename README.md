@@ -20,7 +20,11 @@ Tạo văn bản **Thông báo nợ quá hạn** theo mẫu Google Docs, lấy d
 | Số ngày quá hạn | 1 |
 | Trạng thái nợ | B |
 
-## Chạy lại
+## Không cần chạy code (dùng prompt)
+
+Mở file `prompts/prompt_tao_thong_bao_no_qua_han.md`, copy phần **PROMPT**, dán vào ChatGPT/Claude/Gemini, rồi thay `[DỮ LIỆU DÒNG]` bằng 1 dòng từ Google Sheet.
+
+## Chạy lại bằng script (tuỳ chọn)
 
 ```bash
 pip install python-docx
