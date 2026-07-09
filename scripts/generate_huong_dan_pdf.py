@@ -297,10 +297,12 @@ def build_pdf(output: Path) -> Path:
         "4. Cài thư viện Python",
         "5. Chạy thử với dữ liệu mẫu",
         "6. Dùng file Excel thật",
-        "7. Các cột Excel cần có",
-        "8. Tham số thường dùng",
-        "9. Lỗi hay gặp",
-        "10. Cập nhật code mới nhất",
+        "7. Điền linh hoạt đơn vị liên hệ (bỏ P.KHCN)",
+        "8. Lệnh trên Mac",
+        "9. Các cột Excel cần có",
+        "10. Tham số thường dùng",
+        "11. Lỗi hay gặp",
+        "12. Cập nhật code mới nhất",
     ]:
         story.append(Paragraph(f"• {item}", styles["BulletVN"]))
 
@@ -422,8 +424,63 @@ def build_pdf(output: Path) -> Path:
         )
     )
 
-    # 7
-    story.append(Paragraph("7. Các cột Excel cần có", styles["H1VN"]))
+    # 7 - flexible contact
+    story.append(Paragraph("7. Điền linh hoạt đơn vị liên hệ (bỏ P.KHCN)", styles["H1VN"]))
+    story.append(
+        Paragraph(
+            "Đoạn liên hệ trong thông báo có thể đổi theo phòng/PGD. Chữ ký chỉ còn <b>tên người ký</b>, "
+            "đã <b>bỏ dòng P.KHCN</b>.",
+            styles["BodyVN"],
+        )
+    )
+    story.append(Paragraph("Ví dụ đổi đơn vị liên hệ + số điện thoại:", styles["BodyVN"]))
+    story.append(
+        code_block(
+            "python scripts\\generate_thong_bao_no_qua_han.py -i data\\bao_cao.xlsx --all-overdue ^\n"
+            "  --don-vi-lien-he \"PGD Nhơn Trạch – Ngân hàng TMCP Đầu tư và Phát triển Việt Nam – Chi nhánh Đông Đồng Nai\" ^\n"
+            "  --so-dien-thoai \"02513 123 456\" ^\n"
+            "  --nguoi-ky \"Nguyễn Quốc Tuấn\"",
+            styles,
+        )
+    )
+    story.append(Spacer(1, 4))
+    story.append(tip_box(
+        "Nếu không truyền <b>--don-vi-lien-he</b>, mặc định vẫn là: "
+        "Phòng Khách hàng cá nhân – Ngân hàng TMCP Đầu tư và Phát triển Việt Nam – Chi nhánh Đông Đồng Nai.",
+        styles,
+    ))
+
+    # 8 - Mac
+    story.append(Paragraph("8. Lệnh trên Mac", styles["H1VN"]))
+    story.append(
+        Paragraph(
+            "Trên Mac dùng dấu <b>/</b> (không dùng <b>\\</b>) và lệnh <b>python3</b>:",
+            styles["BodyVN"],
+        )
+    )
+    story.append(
+        code_block(
+            "cd ~/Desktop/test\n"
+            "git pull origin cursor/thong-bao-no-qua-han-893f\n\n"
+            "python3 scripts/generate_thong_bao_no_qua_han.py -i data/bao_cao_no_qua_han_mau.xlsx --list-overdue\n\n"
+            "python3 scripts/generate_thong_bao_no_qua_han.py -i data/bao_cao_no_qua_han_mau.xlsx --all-overdue\n\n"
+            "python3 scripts/generate_thong_bao_no_qua_han.py -i data/bao_cao.xlsx --all-overdue \\\n"
+            "  --don-vi-lien-he \"PGD Nhơn Trạch – Ngân hàng TMCP Đầu tư và Phát triển Việt Nam – Chi nhánh Đông Đồng Nai\" \\\n"
+            "  --so-dien-thoai \"02513 123 456\"",
+            styles,
+        )
+    )
+    story.append(Spacer(1, 4))
+    story.append(
+        tip_box(
+            "Nếu báo <b>unrecognized arguments: --all-overdue</b> thì đang chạy bản code cũ. "
+            "Chạy <b>git pull origin cursor/thong-bao-no-qua-han-893f</b> rồi thử lại.",
+            styles,
+        )
+    )
+
+    # 9
+    story.append(Paragraph("9. Các cột Excel cần có", styles["H1VN"]))
     story.append(
         simple_table(
             ["Cột trong Excel", "Dùng để"],
@@ -443,8 +500,8 @@ def build_pdf(output: Path) -> Path:
         )
     )
 
-    # 8
-    story.append(Paragraph("8. Tham số thường dùng", styles["H1VN"]))
+    # 10
+    story.append(Paragraph("10. Tham số thường dùng", styles["H1VN"]))
     story.append(
         simple_table(
             ["Tham số", "Ý nghĩa"],
@@ -454,6 +511,9 @@ def build_pdf(output: Path) -> Path:
                 ["--row", "Số dòng dữ liệu (1 = dòng đầu sau header)"],
                 ["--all-overdue", "Tạo cho tất cả dòng đang quá hạn"],
                 ["--list-overdue", "Chỉ liệt kê, không tạo file"],
+                ["--don-vi-lien-he \"...\"", "Đơn vị liên hệ (điền linh hoạt)"],
+                ["--so-dien-thoai \"...\"", "Số điện thoại liên hệ"],
+                ["--nguoi-ky \"...\"", "Tên người ký (không in P.KHCN)"],
                 ["--ngay-bao-cao 07/07/2026", "Ghi đè ngày báo cáo"],
                 ["--them-ngay 15", "Cộng thêm N ngày cho hạn thanh toán"],
                 ["--output-dir output", "Thư mục lưu file Word"],
@@ -464,8 +524,8 @@ def build_pdf(output: Path) -> Path:
         )
     )
 
-    # 9
-    story.append(Paragraph("9. Lỗi hay gặp và cách xử lý", styles["H1VN"]))
+    # 11
+    story.append(Paragraph("11. Lỗi hay gặp và cách xử lý", styles["H1VN"]))
     story.append(
         simple_table(
             ["Lỗi", "Cách xử lý"],
@@ -476,14 +536,15 @@ def build_pdf(output: Path) -> Path:
                 ["Không tìm thấy file", "Kiểm tra đang đứng đúng thư mục test"],
                 ["Thiếu cột bắt buộc", "File Excel thiếu cột Khách hàng / Số tài khoản / Số dư cuối kỳ"],
                 ["chưa quá hạn — không tạo", "Dòng đó không có nợ quá hạn; chọn dòng khác hoặc dùng --all-overdue"],
+                ["unrecognized arguments: --all-overdue", "Code cũ — chạy git pull rồi thử lại"],
             ],
             styles,
             [6.5 * cm, 10 * cm],
         )
     )
 
-    # 10
-    story.append(Paragraph("10. Cập nhật code mới nhất (sau này)", styles["H1VN"]))
+    # 12
+    story.append(Paragraph("12. Cập nhật code mới nhất (sau này)", styles["H1VN"]))
     story.append(Paragraph("Khi đã clone rồi, chỉ cần:", styles["BodyVN"]))
     story.append(
         code_block(
@@ -493,9 +554,18 @@ def build_pdf(output: Path) -> Path:
             styles,
         )
     )
+    story.append(Paragraph("Trên Mac:", styles["BodyVN"]))
+    story.append(
+        code_block(
+            "cd ~/Desktop/test\n"
+            "git pull origin cursor/thong-bao-no-qua-han-893f\n"
+            "python3 -m pip install -r requirements.txt",
+            styles,
+        )
+    )
 
     # Links
-    story.append(Paragraph("11. Link hữu ích", styles["H1VN"]))
+    story.append(Paragraph("13. Link hữu ích", styles["H1VN"]))
     links = [
         ("Repository", "https://github.com/dunghoang-ship-it/test"),
         ("Branch đang dùng", "cursor/thong-bao-no-qua-han-893f"),

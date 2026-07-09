@@ -199,3 +199,29 @@ python -m pip install -r requirements.txt
   https://github.com/dunghoang-ship-it/test/blob/cursor/thong-bao-no-qua-han-893f/HUONG_DAN_CAI_DAT_WINDOWS.md
 
 Muốn tải riêng file hướng dẫn: mở link trên → bấm nút **Download raw file** (biểu tượng mũi tên xuống).
+
+
+---
+
+## Điền linh hoạt đơn vị liên hệ (đã bỏ P.KHCN)
+
+```bat
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao.xlsx --all-overdue ^
+  --don-vi-lien-he "PGD Nhơn Trạch – Ngân hàng TMCP Đầu tư và Phát triển Việt Nam – Chi nhánh Đông Đồng Nai" ^
+  --so-dien-thoai "02513 123 456" ^
+  --nguoi-ky "Nguyễn Quốc Tuấn"
+```
+
+Chữ ký chỉ còn tên người ký, không in dòng P.KHCN.
+
+## Lệnh trên Mac
+
+```bash
+cd ~/Desktop/test
+git pull origin cursor/thong-bao-no-qua-han-893f
+
+python3 scripts/generate_thong_bao_no_qua_han.py -i data/bao_cao_no_qua_han_mau.xlsx --list-overdue
+python3 scripts/generate_thong_bao_no_qua_han.py -i data/bao_cao_no_qua_han_mau.xlsx --all-overdue
+```
+
+Nếu báo `unrecognized arguments: --all-overdue` thì đang dùng bản cũ → chạy `git pull` rồi thử lại.
