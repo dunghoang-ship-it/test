@@ -581,10 +581,13 @@ def build_document(data: LoanNoticeData, output_path: Path) -> Path:
 # ---------------------------------------------------------------------------
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Tạo Thông báo nợ quá hạn từ 1 dòng Excel/CSV",
+        description="Tạo Thông báo nợ quá hạn từ Excel/CSV (1 dòng hoặc toàn bộ dòng quá hạn)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
 Ví dụ:
+  # Tạo TẤT CẢ thông báo cho các dòng quá hạn trong file
+  python3 scripts/generate_thong_bao_no_qua_han.py --input data/bao_cao.xlsx --all-overdue
+
   # Theo số tài khoản
   python3 scripts/generate_thong_bao_no_qua_han.py --input data/bao_cao.csv --account 406004006532
 
@@ -599,13 +602,33 @@ Ví dụ:
     parser.add_argument("--sheet", default=None, help="Tên hoặc chỉ số sheet (Excel). Mặc định sheet đầu")
     parser.add_argument("--row", type=int, default=None, help="Số dòng dữ liệu (1-based, sau header)")
     parser.add_argument("--account", "-a", default=None, help="Số tài khoản / số khoản vay")
+    parser.add_argument(
+        "--all-overdue",
+        action="store_true",
+        help="Tạo thông báo cho TẤT CẢ dòng đang quá hạn trong file",
+    )
     parser.add_argument("--so-van-ban", default="999/TB-BIDV.ĐĐN", help="Số văn bản, VD: 999/TB-BIDV.ĐĐN")
+    parser.add_argument(
+        "--so-van-ban-start",
+        type=int,
+        default=None,
+        help="Khi dùng --all-overdue: số bắt đầu để đánh Số văn bản tăng dần (VD: 1000 → 1000/TB-BIDV.ĐĐN, 1001/...)",
+    )
     parser.add_argument("--ngay-bao-cao", default=None, help="Ngày báo cáo dd/mm/yyyy (tuỳ chọn)")
     parser.add_argument("--them-ngay", type=int, default=15, help="Cộng thêm N ngày cho hạn thanh toán (mặc định 15)")
-    parser.add_argument("--output", "-o", default=None, help="Đường dẫn file .docx đầu ra")
+    parser.add_argument("--output", "-o", default=None, help="Đường dẫn file .docx đầu ra (chỉ dùng khi tạo 1 dòng)")
+    parser.add_argument("--output-dir", default="output", help="Thư mục lưu file khi dùng --all-overdue (mặc định: output)")
     parser.add_argument("--list-overdue", action="store_true", help="Liệt kê các dòng có nợ quá hạn rồi thoát")
     parser.add_argument("--allow-not-overdue", action="store_true", help="Vẫn tạo thông báo dù chưa quá hạn")
     return parser.parse_args(argv)
+
+
+def is_overdue_row(row: pd.Series, mapping: dict[str, str]) -> bool:
+    goc = parse_number(get_cell(row, mapping, "goc_qua_han"))
+    lai = parse_number(get_cell(row, mapping, "lai_qua_han"))
+    d1 = parse_number(get_cell(row, mapping, "ngay_qua_han_goc"))
+    d2 = parse_number(get_cell(row, mapping, "ngay_qua_han_lai"))
+    return max(d1, d2) > 0 or goc > 0 or lai > 0
 
 
 def list_overdue(df: pd.DataFrame, mapping: dict[str, str]) -> None:
@@ -613,19 +636,68 @@ def list_overdue(df: pd.DataFrame, mapping: dict[str, str]) -> None:
     print("-" * 80)
     count = 0
     for i, row in df.iterrows():
+        if not is_overdue_row(row, mapping):
+            continue
+        count += 1
         goc = parse_number(get_cell(row, mapping, "goc_qua_han"))
-        lai = parse_number(get_cell(row, mapping, "lai_qua_han"))
         d1 = parse_number(get_cell(row, mapping, "ngay_qua_han_goc"))
         d2 = parse_number(get_cell(row, mapping, "ngay_qua_han_lai"))
         days = max(d1, d2)
-        if days <= 0 and goc <= 0 and lai <= 0:
-            continue
-        count += 1
         ten = str(get_cell(row, mapping, "ten_khach_hang", "") or "")
         stk = str(get_cell(row, mapping, "so_khoan_vay", "") or "").replace(".0", "")
         print(f"{i + 1:>4}  {stk:<16}  {ten:<28}  {days:>8}  {format_vnd(goc):>15}")
     print("-" * 80)
     print(f"Tổng dòng quá hạn: {count}")
+
+
+def make_so_van_ban(base: str, start: int | None, index: int) -> str:
+    """index: 0-based thứ tự trong batch."""
+    if start is None:
+        return base
+    # Nếu base dạng 999/TB-BIDV.ĐĐN → thay phần số đầu
+    if "/" in base:
+        suffix = base.split("/", 1)[1]
+        return f"{start + index}/{suffix}"
+    return f"{start + index}"
+
+
+def generate_one(
+    *,
+    idx: int,
+    row: pd.Series,
+    mapping: dict[str, str],
+    so_van_ban: str,
+    ngay_bc: date | None,
+    them_ngay: int,
+    out: Path,
+    allow_not_overdue: bool,
+) -> Path | None:
+    data = row_to_notice(
+        row,
+        mapping,
+        so_van_ban=so_van_ban,
+        ngay_bao_cao=ngay_bc,
+        them_ngay=them_ngay,
+    )
+    tong_qh = data.qua_han_goc + data.qua_han_lai_va_phat
+    if data.so_ngay_qua_han <= 0 and tong_qh <= 0 and not allow_not_overdue:
+        print(
+            f"Bỏ qua dòng {idx + 1} (TK {data.so_khoan_vay}) — chưa quá hạn.",
+            file=sys.stderr,
+        )
+        return None
+
+    path_out = build_document(data, out)
+    tong_ht = data.du_no_goc + data.du_no_lai_va_phat
+    print(f"Đã tạo: {path_out}")
+    print(f"  Dòng Excel/CSV : {idx + 1}")
+    print(f"  Khách hàng     : {data.ten_khach_hang}")
+    print(f"  Số khoản vay   : {data.so_khoan_vay}")
+    print(f"  Ngày báo cáo   : {data.ngay_bao_cao.strftime('%d/%m/%Y')}")
+    print(f"  Tổng dư nợ HT  : {format_vnd(tong_ht)}")
+    print(f"  Tổng quá hạn   : {format_vnd(tong_qh)}")
+    print(f"  Số ngày QH     : {data.so_ngay_qua_han}")
+    return path_out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -641,50 +713,79 @@ def main(argv: list[str] | None = None) -> int:
 
     df = load_dataframe(path, sheet=sheet)
     mapping = resolve_columns(df)
+    ngay_bc = parse_date(args.ngay_bao_cao) if args.ngay_bao_cao else None
 
     if args.list_overdue:
         list_overdue(df, mapping)
         return 0
 
+    # ---- Chạy toàn bộ dòng quá hạn ----
+    if args.all_overdue:
+        out_dir = Path(args.output_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        created = 0
+        skipped = 0
+        batch_i = 0
+        for i, row in df.iterrows():
+            if not is_overdue_row(row, mapping) and not args.allow_not_overdue:
+                continue
+            so_vb = make_so_van_ban(args.so_van_ban, args.so_van_ban_start, batch_i)
+            # preview tên/stk để đặt tên file
+            preview = row_to_notice(
+                row, mapping, so_van_ban=so_vb, ngay_bao_cao=ngay_bc, them_ngay=args.them_ngay
+            )
+            out = out_dir / f"Thong_bao_no_qua_han_{slugify(preview.ten_khach_hang)}_{preview.so_khoan_vay}.docx"
+            result = generate_one(
+                idx=int(i),
+                row=row,
+                mapping=mapping,
+                so_van_ban=so_vb,
+                ngay_bc=ngay_bc,
+                them_ngay=args.them_ngay,
+                out=out,
+                allow_not_overdue=args.allow_not_overdue,
+            )
+            if result is None:
+                skipped += 1
+            else:
+                created += 1
+                batch_i += 1
+        print("-" * 60)
+        print(f"Hoàn tất: tạo {created} file, bỏ qua {skipped}. Thư mục: {out_dir.resolve()}")
+        return 0 if created else 2
+
     if args.row is None and not args.account:
-        print("Cần chỉ định --row hoặc --account. Dùng --list-overdue để xem các dòng quá hạn.", file=sys.stderr)
+        print(
+            "Cần chỉ định --row, --account hoặc --all-overdue. "
+            "Dùng --list-overdue để xem các dòng quá hạn.",
+            file=sys.stderr,
+        )
         return 1
 
     idx, row = select_row(df, mapping, row=args.row, account=args.account)
-    ngay_bc = parse_date(args.ngay_bao_cao) if args.ngay_bao_cao else None
-    data = row_to_notice(
-        row,
-        mapping,
-        so_van_ban=args.so_van_ban,
-        ngay_bao_cao=ngay_bc,
-        them_ngay=args.them_ngay,
-    )
-
-    tong_qh = data.qua_han_goc + data.qua_han_lai_va_phat
-    if data.so_ngay_qua_han <= 0 and tong_qh <= 0 and not args.allow_not_overdue:
-        print(
-            f"Dòng {idx + 1} (TK {data.so_khoan_vay}) chưa quá hạn — không tạo thông báo. "
-            "Thêm --allow-not-overdue nếu vẫn muốn tạo.",
-            file=sys.stderr,
-        )
-        return 2
-
     if args.output:
         out = Path(args.output)
     else:
-        out = Path("output") / f"Thong_bao_no_qua_han_{slugify(data.ten_khach_hang)}_{data.so_khoan_vay}.docx"
+        preview = row_to_notice(
+            row,
+            mapping,
+            so_van_ban=args.so_van_ban,
+            ngay_bao_cao=ngay_bc,
+            them_ngay=args.them_ngay,
+        )
+        out = Path(args.output_dir) / f"Thong_bao_no_qua_han_{slugify(preview.ten_khach_hang)}_{preview.so_khoan_vay}.docx"
 
-    path_out = build_document(data, out)
-    tong_ht = data.du_no_goc + data.du_no_lai_va_phat
-    print(f"Đã tạo: {path_out}")
-    print(f"Dòng Excel/CSV : {idx + 1}")
-    print(f"Khách hàng     : {data.ten_khach_hang}")
-    print(f"Số khoản vay   : {data.so_khoan_vay}")
-    print(f"Ngày báo cáo   : {data.ngay_bao_cao.strftime('%d/%m/%Y')}")
-    print(f"Tổng dư nợ HT  : {format_vnd(tong_ht)}")
-    print(f"Tổng quá hạn   : {format_vnd(tong_qh)}")
-    print(f"Số ngày QH     : {data.so_ngay_qua_han}")
-    return 0
+    result = generate_one(
+        idx=idx,
+        row=row,
+        mapping=mapping,
+        so_van_ban=args.so_van_ban,
+        ngay_bc=ngay_bc,
+        them_ngay=args.them_ngay,
+        out=out,
+        allow_not_overdue=args.allow_not_overdue,
+    )
+    return 0 if result is not None else 2
 
 
 if __name__ == "__main__":
