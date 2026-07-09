@@ -1,0 +1,70 @@
+NGÂN HÀNG TMCP ĐẦU TƯ                          CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM
+VÀ PHÁT TRIỂN VIỆT NAM                         Độc lập - Tự do - Hạnh phúc
+CHI NHÁNH ĐÔNG ĐỒNG NAI
+
+Số: 999/TB-BIDV.ĐĐN
+(V/v Thông báo nợ quá hạn đối với khách hàng ông/bà Nguyễn Thị Thanh Thúy)
+
+                                                    Đồng Nai, ngày 07 tháng 07 năm 2026
+
+
+                              THÔNG BÁO NỢ QUÁ HẠN
+Kính gửi: ông/bà Nguyễn Thị Thanh Thúy
+
+
+Căn cứ Hợp đồng tín dụng ký giữa Khách hàng và Ngân hàng TMCP Đầu tư và Phát triển Việt Nam;
+Ngân hàng TMCP Đầu tư và Phát triển Việt Nam – Chi nhánh Đông Đồng Nai (sau đây gọi là “Ngân hàng”) trân trọng thông báo đến quý khách được biết về khoản nợ tính đến ngày 07/07/2026 và đề nghị như sau:
+
+                                                                                 ĐVT: Đồng
+
+Số khoản vay | Dư nợ hiện tại (Gốc / Lãi và lãi phạt / Tổng) | Dư nợ quá hạn (Gốc / Lãi và lãi phạt / Tổng) | Số ngày quá hạn
+406004006532 | 898.494.837 / 2.041.199 / 900.536.036 | 898.494.837 / 1.863.961 / 900.358.798 | 1
+Tổng cộng    | 898.494.837 / 2.041.199 / 900.536.036 | 898.494.837 / 1.863.961 / 900.358.798 |
+
+Tổng nợ gốc, lãi của quý khách đến ngày 07/07/2026 là 900.536.036 đồng (Bằng chữ: Chín trăm triệu năm trăm ba mươi sáu nghìn ba mươi sáu đồng). Trong đó, tổng số tiền quá hạn là 900.358.798 đồng (Bằng chữ: Chín trăm triệu ba trăm năm mươi tám nghìn bảy trăm chín mươi tám đồng), đề nghị quý khách thu xếp để thanh toán toàn bộ số tiền nợ quá hạn tại Ngân hàng trước ngày 22/07/2026. Trường hợp quý khách không thanh toán đầy đủ nợ quá hạn trong thời gian thông báo này, Ngân hàng sẽ thực hiện các biện pháp khởi kiện, phát mại tài sản bảo đảm để thu hồi nợ.
+
+Mọi thông tin xin vui lòng liên hệ đến Phòng Khách hàng cá nhân – Ngân hàng TMCP Đầu tư và Phát triển Việt Nam – Chi nhánh Đông Đồng Nai, số điện thoại: 02513 526 325.
+
+Trân trọng thông báo./.
+
+Nơi nhận: (…bản)                                      ĐẠI DIỆN NGÂN HÀNG
+- Như trên;
+- Ban Giám đốc B.One
+- P. KHCN B.One;
+- Lưu VT; P. QTTD.
+
+                                                          Nguyễn Quốc Tuấn
+                                                               P.KHCN
+
+
+--------------------------------------------------------------------------------
+NGUỒN DỮ LIỆU (1 dòng từ Google Sheet – Báo cáo nợ đến hạn, quá hạn hàng ngày)
+--------------------------------------------------------------------------------
+Chi nhánh: 671
+Khách hàng: NGUYEN THI THANH THUY
+Số CIF: 380862
+Số tài khoản / Số khoản vay: 406004006532
+Loại vay: 8003_NH2KHM0944
+Lãi suất: 7,2%
+Ngày cho vay: 04/11/2025
+Ngày đáo hạn: 06/07/2026
+Số dư cuối kỳ: 898.494.837
+Số tiền lãi hiện tại: 1.952.579,50323 ≈ 1.952.580
+Phí phạt chậm thanh toán / Dư lãi phạt cho gốc: 88.619
+Số tiền gốc trên bill: 898.494.837
+Số tiền lãi trên bill: 1.775.342
+Tổng tiền đến hạn (sheet): 900.270.179
+Số ngày quá hạn gốc/lãi: 1
+Số tiền gốc quá hạn: 898.494.837
+Số tiền lãi quá hạn: 1.775.342
+Trạng thái nợ: B
+Phòng cho vay: PGD PHUOC THAI_CN DONG DONG NAI
+Cán bộ QLKH: TRAN MINH TIEN
+
+Cách map sang mẫu thông báo:
+- Dư nợ hiện tại – Gốc          = Số dư cuối kỳ
+- Dư nợ hiện tại – Lãi và phạt  = Số tiền lãi hiện tại (làm tròn) + Dư lãi phạt cho gốc
+- Dư nợ quá hạn – Gốc           = Số tiền gốc quá hạn
+- Dư nợ quá hạn – Lãi và phạt   = Số tiền lãi quá hạn + Dư lãi phạt cho gốc
+- Số ngày quá hạn               = max(Số ngày quá hạn gốc, Số ngày quá hạn lãi)
+- Hạn thanh toán                = Ngày báo cáo + 15 ngày (theo ghi chú mẫu)

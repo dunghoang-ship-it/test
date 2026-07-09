@@ -1,0 +1,227 @@
+Hướng dẫn cài đặt trên máy Windows (máy mới)
+
+Tài liệu này hướng dẫn cài từ đầu để chạy được tool Thông báo nợ quá hạn trên Windows.
+
+---
+
+1. Cài Git
+
+1. Tải Git tại: https://git-scm.com/download/win
+2. Cài với các lựa chọn mặc định (bấm Next đến hết)
+3. Mở Command Prompt (CMD) hoặc PowerShell, gõ:
+
+bat
+git --version
+
+
+Nếu hiện ra số phiên bản (ví dụ git version 2.45.x) là đã cài thành công.
+
+---
+
+2. Cài Python
+
+1. Tải Python 3.11 hoặc 3.12 tại: https://www.python.org/downloads/windows/
+2. Chạy file cài đặt
+3. Bắt buộc: tick ô Add python.exe to PATH
+4. Bấm Install Now
+5. Kiểm tra trong CMD:
+
+bat
+python --version
+pip --version
+
+
+Nếu lệnh python không nhận, đóng CMD rồi mở lại. Nếu vẫn lỗi, cài lại Python và nhớ tick Add to PATH.
+
+---
+
+3. Clone project về máy
+
+Mở CMD và chạy lần lượt:
+
+bat
+cd %USERPROFILE%\Desktop
+git clone https://github.com/dunghoang-ship-it/test.git
+cd test
+git checkout cursor/thong-bao-no-qua-han-893f
+
+
+Sau bước này, trên Desktop sẽ có thư mục test.
+
+---
+
+4. Cài thư viện Python
+
+Đang đứng trong thư mục test, chạy:
+
+bat
+python -m pip install -r requirements.txt
+
+
+Các thư viện sẽ được cài: python-docx, pandas, openpyxl.
+
+---
+
+5. Chạy thử với dữ liệu mẫu
+
+5.1. Xem các dòng đang quá hạn
+
+bat
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao_no_qua_han_mau.xlsx --list-overdue
+
+
+5.2. Tạo 1 thông báo theo số tài khoản
+
+bat
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao_no_qua_han_mau.xlsx --account 406004006532
+
+
+5.3. Tạo thông báo theo số dòng
+
+(1 = dòng dữ liệu đầu tiên sau dòng tiêu đề)
+
+bat
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao_no_qua_han_mau.xlsx --row 3
+
+
+5.4. Tạo TẤT CẢ thông báo cho các dòng quá hạn
+
+bat
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao_no_qua_han_mau.xlsx --all-overdue
+
+
+File Word sẽ nằm trong thư mục:
+
+
+test\output\
+
+
+Ví dụ tên file:
+
+
+Thong_bao_no_qua_han_Nguyen_Thi_Thanh_Thuy_406004006532.docx
+
+
+---
+
+6. Dùng file Excel thật của bạn
+
+1. Mở Google Sheet báo cáo nợ đến hạn / quá hạn
+2. Chọn File → Download → Microsoft Excel (.xlsx)
+3. Copy file vừa tải vào thư mục test\data\  
+   Ví dụ đổi tên thành: bao_cao.xlsx
+4. Chạy:
+
+bat
+REM Xem trước các dòng quá hạn
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao.xlsx --list-overdue
+
+REM Tạo tất cả thông báo quá hạn
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao.xlsx --all-overdue
+
+
+Tuỳ chọn thêm khi chạy hàng loạt
+
+bat
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao.xlsx --all-overdue --so-van-ban-start 1000 --output-dir output\batch
+
+
+- --so-van-ban-start 1000: số văn bản tăng dần (1000/TB-BIDV.ĐĐN, 1001/...)
+- --output-dir output\batch: lưu file vào thư mục riêng
+
+---
+
+7. Các cột Excel cần có
+
+File Excel/CSV cần có các cột (tên gần đúng cũng được):
+
+| Cột | Dùng để |
+| --- | --- |
+| Khách hàng | Tên người nhận thông báo |
+| Số tài khoản | Số khoản vay |
+| Số dư cuối kỳ (nguyên tệ) | Dư nợ gốc hiện tại |
+| Số tiền lãi hiện tại (NT) | Lãi hiện tại |
+| Số tiền gốc quá hạn | Gốc quá hạn |
+| Số tiền lãi quá hạn | Lãi quá hạn |
+| Số ngày quá hạn gốc / lãi | Số ngày quá hạn |
+| Dư lãi phạt cho gốc / lãi | Lãi phạt |
+| Lịch trả gốc / lãi | Suy ra ngày báo cáo (nếu không truyền tay) |
+
+---
+
+8. Giải thích tham số thường dùng
+
+| Tham số | Ý nghĩa |
+| --- | --- |
+| -i / --input | Đường dẫn file Excel/CSV |
+| --account | Số tài khoản cần tạo thông báo |
+| --row | Số dòng dữ liệu (1 = dòng đầu sau header) |
+| --all-overdue | Tạo cho tất cả dòng đang quá hạn |
+| --list-overdue | Chỉ liệt kê, không tạo file |
+| --ngay-bao-cao 07/07/2026 | Ghi đè ngày báo cáo |
+| --them-ngay 15 | Cộng thêm N ngày cho hạn thanh toán |
+| --output-dir output | Thư mục lưu file Word |
+| --allow-not-overdue | Vẫn tạo dù dòng chưa quá hạn |
+
+---
+
+9. Lỗi hay gặp và cách xử lý
+
+| Lỗi | Cách xử lý |
+| --- | --- |
+| 'python' is not recognized | Cài lại Python, tick Add python.exe to PATH, mở lại CMD |
+| 'git' is not recognized | Cài Git rồi mở lại CMD |
+| pip không chạy | Dùng python -m pip install -r requirements.txt |
+| Không tìm thấy file | Kiểm tra đang đứng đúng thư mục test (cd vào đúng chỗ) |
+| Thiếu cột bắt buộc | File Excel thiếu cột Khách hàng / Số tài khoản / Số dư cuối kỳ |
+| chưa quá hạn — không tạo thông báo | Dòng đó không có nợ quá hạn; dùng --all-overdue hoặc chọn dòng khác |
+
+---
+
+10. Cập nhật code mới nhất (sau này)
+
+Khi đã clone rồi, chỉ cần:
+
+bat
+cd %USERPROFILE%\Desktop\test
+git pull origin cursor/thong-bao-no-qua-han-893f
+python -m pip install -r requirements.txt
+
+
+---
+
+11. Link tải nhanh
+
+- Repository: https://github.com/dunghoang-ship-it/test
+- Branch đang dùng: cursor/thong-bao-no-qua-han-893f
+- Pull request: https://github.com/dunghoang-ship-it/test/pull/1
+- File hướng dẫn này trên GitHub:  
+  https://github.com/dunghoang-ship-it/test/blob/cursor/thong-bao-no-qua-han-893f/HUONG_DAN_CAI_DAT_WINDOWS.md
+
+Muốn tải riêng file hướng dẫn: mở link trên → bấm nút Download raw file (biểu tượng mũi tên xuống).
+
+
+---
+
+## Điền linh hoạt đơn vị liên hệ (đã bỏ P.KHCN)
+
+```bat
+python scripts\generate_thong_bao_no_qua_han.py -i data\bao_cao.xlsx --all-overdue ^
+  --don-vi-lien-he "PGD Nhơn Trạch – Ngân hàng TMCP Đầu tư và Phát triển Việt Nam – Chi nhánh Đông Đồng Nai" ^
+  --so-dien-thoai "02513 123 456" ^
+  --nguoi-ky "Nguyễn Quốc Tuấn"
+```
+
+Chữ ký chỉ còn tên người ký, không in dòng P.KHCN.
+
+## Lệnh trên Mac
+
+```bash
+cd ~/Desktop/test
+git pull origin cursor/thong-bao-no-qua-han-893f
+
+python3 scripts/generate_thong_bao_no_qua_han.py -i data/bao_cao_no_qua_han_mau.xlsx --list-overdue
+python3 scripts/generate_thong_bao_no_qua_han.py -i data/bao_cao_no_qua_han_mau.xlsx --all-overdue
+```
+
+Nếu báo `unrecognized arguments: --all-overdue` thì đang dùng bản cũ → chạy `git pull` rồi thử lại.
