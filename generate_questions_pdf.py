@@ -10,6 +10,26 @@ from reportlab.platypus import (
     PageBreak, HRFlowable, KeepTogether
 )
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# Register Noto Sans fonts (full Unicode + Vietnamese support)
+_FONT_DIR = "/usr/share/fonts/truetype/noto"
+pdfmetrics.registerFont(TTFont("NotoSans",           f"{_FONT_DIR}/NotoSans-Regular.ttf"))
+pdfmetrics.registerFont(TTFont("NotoSans-Bold",      f"{_FONT_DIR}/NotoSans-Bold.ttf"))
+pdfmetrics.registerFont(TTFont("NotoSans-Italic",    f"{_FONT_DIR}/NotoSans-Italic.ttf"))
+pdfmetrics.registerFont(TTFont("NotoSans-BoldItalic",f"{_FONT_DIR}/NotoSans-BoldItalic.ttf"))
+from reportlab.pdfbase.pdfmetrics import registerFontFamily
+registerFontFamily(
+    "NotoSans",
+    normal="NotoSans",
+    bold="NotoSans-Bold",
+    italic="NotoSans-Italic",
+    boldItalic="NotoSans-BoldItalic",
+)
+
+BODY_FONT  = "NotoSans"
+BOLD_FONT  = "NotoSans-Bold"
 
 # ==========================================================================
 # COMPREHENSIVE Q&A BANK – Data Engineer (DAC Data Technology / Hakuhodo)
@@ -736,7 +756,7 @@ def build_pdf(output_path: str):
 
     cover_title = ParagraphStyle(
         "CoverTitle",
-        parent=styles["Title"],
+        fontName=BOLD_FONT,
         fontSize=22,
         leading=28,
         textColor=colors.HexColor("#1A3A5C"),
@@ -745,7 +765,7 @@ def build_pdf(output_path: str):
     )
     cover_sub = ParagraphStyle(
         "CoverSub",
-        parent=styles["Normal"],
+        fontName=BODY_FONT,
         fontSize=13,
         leading=18,
         textColor=colors.HexColor("#5D6D7E"),
@@ -754,7 +774,7 @@ def build_pdf(output_path: str):
     )
     section_title_base = ParagraphStyle(
         "SectionTitleBase",
-        parent=styles["Heading1"],
+        fontName=BOLD_FONT,
         fontSize=12,
         leading=16,
         spaceBefore=14,
@@ -766,7 +786,7 @@ def build_pdf(output_path: str):
     )
     question_style = ParagraphStyle(
         "Question",
-        parent=styles["Normal"],
+        fontName=BODY_FONT,
         fontSize=9.5,
         leading=14,
         spaceAfter=5,
@@ -777,7 +797,7 @@ def build_pdf(output_path: str):
     )
     note_style = ParagraphStyle(
         "Note",
-        parent=styles["Normal"],
+        fontName=BODY_FONT,
         fontSize=8.5,
         leading=12,
         textColor=colors.HexColor("#717D7E"),
@@ -785,7 +805,7 @@ def build_pdf(output_path: str):
     )
     toc_title_style = ParagraphStyle(
         "TocTitle",
-        parent=styles["Heading1"],
+        fontName=BOLD_FONT,
         fontSize=16,
         textColor=colors.HexColor("#1A3A5C"),
         spaceAfter=12,
@@ -793,7 +813,7 @@ def build_pdf(output_path: str):
     )
     toc_item_style = ParagraphStyle(
         "TocItem",
-        parent=styles["Normal"],
+        fontName=BODY_FONT,
         fontSize=9,
         leading=14,
         leftIndent=16,
@@ -829,7 +849,7 @@ def build_pdf(output_path: str):
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#AED6F1")),
         ("ROWHEIGHT", (0, 0), (-1, -1), 22),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+        ("FONTNAME", (0, 0), (-1, -1), BOLD_FONT),
     ]))
     story.append(stat_table)
     story.append(Spacer(1, 1 * cm))
